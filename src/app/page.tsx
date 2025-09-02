@@ -1,103 +1,166 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import { PersonaCard } from '@/components/PersonaCard';
+import { UserProfilePage } from '@/components/UserProfilePage';
+import { ReflectionSummaryPage } from '@/components/ReflectionSummaryPage';
+import { DesignFictionPage } from '@/components/DesignFictionPage';
+
+const personas = [
+  {
+    id: 1,
+    name: 'Jace',
+    role: 'Computer Science Student (Year 2)',
+    description: [
+      'Blind since childhood',
+      'Confidently uses a white cane for mobility and screen readers for studying',
+      'Manages coursework with assistive technology but often needs to troubleshoot accessibility issues on his own',
+      'Works part-time as a coding tutor for high school students'
+    ],
+    imageUrl: '/persona/persona1.png',
+    color: '#6366f1',
+    age: 20
+  },
+  {
+    id: 2,
+    name: 'Maria',
+    role: 'Business Exchange Student',
+    description: [
+      'From Spain, new to Singapore',
+      'Limited English and almost no Chinese proficiency',
+      'Struggles with lectures, group projects, and reading campus signage',
+      'Works part-time as a barista at a café near campus to support her stay'
+    ],
+    imageUrl: '/persona/persona2.png',
+    color: '#f59e0b',
+    age: 22
+  },
+  {
+    id: 3,
+    name: 'Daniel',
+    role: 'Psychology Student (Year 2)',
+    description: [
+      'Has ADHD, making it hard to stay focused in long lectures and to organize multiple assignments',
+      'Uses reminders, apps, and peer support to manage deadlines',
+      'Enjoys interactive, hands-on learning methods',
+      'Active volunteer in a local youth mentoring program'
+    ],
+    imageUrl: '/persona/persona3.png',
+    color: '#ec4899',
+    age: 21
+  },
+  {
+    id: 4,
+    name: 'Mei',
+    role: 'NUS Central Library Librarian',
+    description: [
+      'Pregnant, currently in her second trimester',
+      'Provides front-desk service and resource support for students and faculty',
+      'Needs to be on her feet and move around for long periods',
+      'Balancing health, work responsibilities, and planning for maternity leave'
+    ],
+    imageUrl: '/persona/persona4.png',
+    color: '#10b981',
+    age: 28
+  }
+];
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [selectedPersona, setSelectedPersona] = useState<typeof personas[0] | null>(null);
+  const [reflectionData, setReflectionData] = useState<any>(null);
+  const [designData, setDesignData] = useState<any>(null);
+  const [currentView, setCurrentView] = useState<'personas' | 'exercise' | 'summary' | 'design-fiction'>('personas');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handlePersonaSelect = (personaId: number) => {
+    const persona = personas.find(p => p.id === personaId);
+    if (persona) {
+      setSelectedPersona(persona);
+      setCurrentView('exercise');
+    }
+  };
+
+  const handleBackToPersonas = () => {
+    setSelectedPersona(null);
+    setCurrentView('personas');
+  };
+
+  const handleExerciseComplete = (data: any) => {
+    setReflectionData(data);
+    setCurrentView('summary');
+  };
+
+  const handleBackToExercise = () => {
+    setCurrentView('exercise');
+  };
+
+  const handleDesignComplete = (data: any) => {
+    setDesignData(data);
+    setCurrentView('design-fiction');
+  };
+
+  const handleBackToSummary = () => {
+    setCurrentView('summary');
+  };
+
+  if (currentView === 'exercise' && selectedPersona) {
+    return (
+      <UserProfilePage 
+        persona={selectedPersona}
+        onBack={handleBackToPersonas}
+        onComplete={handleExerciseComplete}
+        initialData={reflectionData}
+      />
+    );
+  }
+
+  if (currentView === 'summary' && selectedPersona && reflectionData) {
+    return (
+      <ReflectionSummaryPage
+        persona={selectedPersona}
+        reflectionData={reflectionData}
+        onBack={handleBackToExercise}
+        onDesignComplete={handleDesignComplete}
+        initialDesignData={designData}
+      />
+    );
+  }
+
+  if (currentView === 'design-fiction' && selectedPersona && reflectionData && designData) {
+    return (
+      <DesignFictionPage
+        persona={selectedPersona}
+        reflectionData={reflectionData}
+        designData={designData}
+        onBack={handleBackToSummary}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Choose Your Persona
+          </h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Persona Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {personas.map((persona) => (
+            <PersonaCard
+              key={persona.id}
+              name={persona.name}
+              role={persona.role}
+              description={persona.description}
+              imageUrl={persona.imageUrl}
+              color={persona.color}
+              onClick={() => handlePersonaSelect(persona.id)}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
