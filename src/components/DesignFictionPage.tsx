@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Button } from './ui/button';
-import { ArrowLeft, CheckCircle, User, Sparkles, AlertTriangle } from 'lucide-react';
+import { Textarea } from './ui/textarea';
+import { ArrowLeft, CheckCircle, User, Sparkles, AlertTriangle, Edit3, History, Save, X } from 'lucide-react';
 
 interface DesignFictionPageProps {
   persona: {
@@ -33,9 +34,10 @@ interface DesignFictionPageProps {
     description: string;
   };
   onBack: () => void;
+  onDescriptionUpdate?: (newDescription: string) => void;
 }
 
-export function DesignFictionPage({ persona, reflectionData, designData, onBack }: DesignFictionPageProps) {
+export function DesignFictionPage({ persona, reflectionData, designData, onBack, onDescriptionUpdate }: DesignFictionPageProps) {
   const [utopiaStory, setUtopiaStory] = useState('');
   const [dystopiaStory, setDystopiaStory] = useState('');
   const [utopiaStatus, setUtopiaStatus] = useState<'generating' | 'completed' | 'failed'>('generating');
@@ -47,6 +49,10 @@ export function DesignFictionPage({ persona, reflectionData, designData, onBack 
   const [utopiaHighlights, setUtopiaHighlights] = useState<Array<{start: number, end: number, text: string}>>([]);
   const [dystopiaHighlights, setDystopiaHighlights] = useState<Array<{start: number, end: number, text: string}>>([]);
   const [selectedText, setSelectedText] = useState<{text: string, type: 'utopia' | 'dystopia'} | null>(null);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [currentDescription, setCurrentDescription] = useState(designData.description);
+  const [originalDescription] = useState(designData.description);
+  const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
   // Remove emoji from context for display
   const cleanContext = reflectionData.selectedContext.replace(/^[^\s]*\s/, '');
@@ -125,6 +131,45 @@ export function DesignFictionPage({ persona, reflectionData, designData, onBack 
   }, [selectedText, displayedUtopia, displayedDystopia, utopiaTyping, dystopiaTyping, utopiaStatus, dystopiaStatus]);
 
   // Function to render text with highlights
+  // Function to remove a specific highlight
+  const removeHighlight = (type: 'utopia' | 'dystopia', index: number) => {
+    if (type === 'utopia') {
+      setUtopiaHighlights(prev => prev.filter((_, i) => i !== index));
+    } else {
+      setDystopiaHighlights(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  // Function to remove all highlights
+  const removeAllHighlights = (type: 'utopia' | 'dystopia') => {
+    if (type === 'utopia') {
+      setUtopiaHighlights([]);
+    } else {
+      setDystopiaHighlights([]);
+    }
+  };
+
+  // Functions for description editing
+  const handleEditDescription = () => {
+    setIsEditingDescription(true);
+  };
+
+  const handleSaveDescription = () => {
+    if (currentDescription.trim() !== originalDescription) {
+      setHasBeenEdited(true);
+      // 변경사항을 전역 상태에 반영
+      if (onDescriptionUpdate) {
+        onDescriptionUpdate(currentDescription);
+      }
+    }
+    setIsEditingDescription(false);
+  };
+
+  const handleCancelEdit = () => {
+    setCurrentDescription(hasBeenEdited ? currentDescription : originalDescription);
+    setIsEditingDescription(false);
+  };
+
   const renderHighlightedText = (text: string, highlights: Array<{start: number, end: number, text: string}>, type: 'utopia' | 'dystopia') => {
     if (highlights.length === 0) {
       return text;
@@ -277,9 +322,61 @@ Each story should be 4 paragraphs, written from ${persona.name}'s perspective in
               />
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">{designData.title}</h2>
-              <p className="text-gray-600 mb-2">Designed for {persona.name} • {cleanContext} context</p>
-              <p className="text-sm text-gray-700 leading-relaxed">{designData.description}</p>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xl font-bold text-gray-900">{designData.title}</h2>
+                {!isEditingDescription ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEditDescription}
+                    className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 px-3 py-1.5 font-medium"
+                  >
+                    <Edit3 className="w-4 h-4 mr-1.5" />
+                    Edit Description
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSaveDescription}
+                      className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:border-green-300 px-3 py-1.5 font-medium"
+                    >
+                      <Save className="w-4 h-4 mr-1.5" />
+                      Save
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCancelEdit}
+                      className="text-gray-500 hover:text-gray-700 px-3 py-1.5"
+                    >
+                      <X className="w-4 h-4 mr-1.5" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <p className="text-gray-600 mb-3">Designed for {persona.name} • {cleanContext} context</p>
+              
+              {isEditingDescription ? (
+                <Textarea
+                  value={currentDescription}
+                  onChange={(e) => setCurrentDescription(e.target.value)}
+                  className="text-[15px] text-gray-700 leading-relaxed min-h-[120px] resize-none"
+                  placeholder="Describe your design solution..."
+                />
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-[15px] text-gray-700 leading-relaxed">{currentDescription}</p>
+                  {hasBeenEdited && (
+                    <div className="border-t border-gray-200 pt-4">
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">Original Version:</h4>
+                      <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg">{originalDescription}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -296,14 +393,26 @@ Each story should be 4 paragraphs, written from ${persona.name}'s perspective in
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Utopia Story */}
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-green-600" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Utopian Vision</h3>
+                  <p className="text-sm text-gray-500">Positive potential and benefits</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Utopian Vision</h3>
-                <p className="text-sm text-gray-500">Positive potential and benefits</p>
-              </div>
+              {utopiaHighlights.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeAllHighlights('utopia')}
+                  className="text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1"
+                >
+                  Clear all highlights
+                </Button>
+              )}
             </div>
 
             <div className="min-h-64">
@@ -332,14 +441,26 @@ Each story should be 4 paragraphs, written from ${persona.name}'s perspective in
 
           {/* Dystopia Story */}
           <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Dystopian Concerns</h3>
+                  <p className="text-sm text-gray-500">Potential risks and adverse effects</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Dystopian Concerns</h3>
-                <p className="text-sm text-gray-500">Potential risks and adverse effects</p>
-              </div>
+              {dystopiaHighlights.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeAllHighlights('dystopia')}
+                  className="text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1"
+                >
+                  Clear all highlights
+                </Button>
+              )}
             </div>
 
             <div className="min-h-64">

@@ -46,6 +46,7 @@ interface ReflectionSummaryPageProps {
 
 export function ReflectionSummaryPage({ persona, reflectionData, onBack, onDesignComplete, initialDesignData }: ReflectionSummaryPageProps) {
   const { exclusionStory, inclusiveActions } = reflectionData;
+  // initialDesignData가 있으면 폼을 표시하고 초기값 설정
   const [showDesignForm, setShowDesignForm] = useState(!!initialDesignData);
   const [designTitle, setDesignTitle] = useState(initialDesignData?.title || '');
   const [designDescription, setDesignDescription] = useState(initialDesignData?.description || '');

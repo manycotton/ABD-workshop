@@ -93,6 +93,7 @@ const personaLetters: Record<number, { greeting: string; content: string[]; clos
 };
 
 export function UserProfilePage({ persona, onBack, onComplete, initialData }: UserProfilePageProps) {
+  // initialData가 있으면 그 값을, 없으면 빈 문자열 사용
   const [strengths, setStrengths] = useState(initialData?.strengths || '');
   const [importantThings, setImportantThings] = useState(initialData?.importantThings || '');
   const [selectedContext, setSelectedContext] = useState<string>(initialData?.selectedContext || '');

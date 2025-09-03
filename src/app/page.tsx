@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useAppContext } from '@/contexts/AppContext';
 import { PersonaCard } from '@/components/PersonaCard';
 import { UserProfilePage } from '@/components/UserProfilePage';
 import { ReflectionSummaryPage } from '@/components/ReflectionSummaryPage';
@@ -66,20 +66,49 @@ const personas = [
 ];
 
 export default function Home() {
-  const [selectedPersona, setSelectedPersona] = useState<typeof personas[0] | null>(null);
-  const [reflectionData, setReflectionData] = useState<any>(null);
-  const [designData, setDesignData] = useState<any>(null);
-  const [currentView, setCurrentView] = useState<'personas' | 'exercise' | 'summary' | 'design-fiction'>('personas');
+  const { 
+    appState, 
+    setSelectedPersona, 
+    setReflectionData, 
+    setDesignData, 
+    setCurrentView,
+    resetAllData,
+    hasAnyData
+  } = useAppContext();
+  
+  const { selectedPersona, reflectionData, designData, currentView } = appState;
 
   const handlePersonaSelect = (personaId: number) => {
     const persona = personas.find(p => p.id === personaId);
     if (persona) {
+      // PersonaCard를 새로 선택할 때, 기존 데이터가 있다면 경고창 표시
+      if (hasAnyData()) {
+        const confirmed = window.confirm(
+          "Selecting a new persona will delete all data you've entered so far. Do you want to continue?"
+        );
+        if (!confirmed) {
+          return;
+        }
+        resetAllData();
+      }
+      
       setSelectedPersona(persona);
       setCurrentView('exercise');
     }
   };
 
   const handleBackToPersonas = () => {
+    // 뒤로가기일 때는 데이터 유지하고 PersonaCard 페이지로 이동
+    if (hasAnyData()) {
+      const confirmed = window.confirm(
+        "Going back to persona selection will delete all data you've entered so far. Do you want to continue?"
+      );
+      if (!confirmed) {
+        return;
+      }
+      resetAllData();
+    }
+    
     setSelectedPersona(null);
     setCurrentView('personas');
   };
@@ -132,6 +161,11 @@ export default function Home() {
         reflectionData={reflectionData}
         designData={designData}
         onBack={handleBackToSummary}
+        onDescriptionUpdate={(newDescription: string) => {
+          // 디자인 데이터의 설명을 업데이트
+          const updatedDesignData = { ...designData, description: newDescription };
+          setDesignData(updatedDesignData);
+        }}
       />
     );
   }
