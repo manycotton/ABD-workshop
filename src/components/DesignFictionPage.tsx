@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
-import { ArrowLeft, CheckCircle, User, Sparkles, AlertTriangle, Edit3, History, Save, X } from 'lucide-react';
+import { ArrowLeft, Sparkles, AlertTriangle, Edit3, Save, X } from 'lucide-react';
 
 interface DesignFictionPageProps {
   persona: {
@@ -211,7 +211,7 @@ export function DesignFictionPage({ persona, reflectionData, designData, onBack,
     return parts;
   };
 
-  const generateDesignFictions = async () => {
+  const generateDesignFictions = useCallback(async () => {
     try {
       const prompt = `Generate two design fiction stories based on the following information:
 
@@ -260,7 +260,7 @@ Each story should be 4 paragraphs, written from ${persona.name}'s perspective in
       setUtopiaStatus('failed');
       setDystopiaStatus('failed');
     }
-  };
+  }, [persona.name, persona.age, persona.role, persona.description, cleanContext, reflectionData.exclusionStory, designData.title, designData.description]);
 
   const startTypingEffect = (story: string, type: 'utopia' | 'dystopia') => {
     const setDisplayed = type === 'utopia' ? setDisplayedUtopia : setDisplayedDystopia;
@@ -383,7 +383,7 @@ Each story should be 4 paragraphs, written from ${persona.name}'s perspective in
 
         {/* Highlighting Instructions */}
         <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-3">💡 Select text by dragging your cursor, then press "Enter" to highlight important insights.</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-3">💡 Select text by dragging your cursor, then press &quot;Enter&quot; to highlight important insights.</h3>
           <p className="text-xs text-gray-500 mt-2 font-medium ml-4">
               * Highlighting will be available after both stories finish loading
             </p>
@@ -492,7 +492,7 @@ Each story should be 4 paragraphs, written from ${persona.name}'s perspective in
         <div className="mt-8 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 border border-purple-100">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Critical Reflection</h3>
           <p className="text-base text-gray-700 leading-relaxed">
-            These design fiction stories explore different possibilities for how technology might impact {persona.name}'s life and society. 
+            These design fiction stories explore different possibilities for how technology might impact {persona.name}&apos;s life and society. 
             Consider: What aspects of each scenario feel most realistic? How might we design technology to maximize benefits while minimizing risks? 
             What safeguards or considerations should be built into inclusive design processes?
           </p>

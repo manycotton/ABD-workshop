@@ -74,7 +74,7 @@ Each story should be exactly 4 paragraphs, written in first person from the pers
         utopia: cleanText(stories.utopia),
         dystopia: cleanText(stories.dystopia)
       });
-    } catch (parseError) {
+    } catch {
       console.log('JSON parsing failed, attempting manual parsing');
       
       // Look for clear separators or patterns

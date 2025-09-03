@@ -1,6 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAppContext } from '@/contexts/AppContext';
+import type { ReflectionData, DesignData } from '@/contexts/AppContext';
 import { PersonaCard } from '@/components/PersonaCard';
 import { UserProfilePage } from '@/components/UserProfilePage';
 import { ReflectionSummaryPage } from '@/components/ReflectionSummaryPage';
@@ -66,6 +69,9 @@ const personas = [
 ];
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const { 
     appState, 
     setSelectedPersona, 
@@ -77,6 +83,57 @@ export default function Home() {
   } = useAppContext();
   
   const { selectedPersona, reflectionData, designData, currentView } = appState;
+
+  // URL 파라미터에서 현재 뷰와 페르소나 ID를 읽어와서 상태 동기화
+  useEffect(() => {
+    const view = searchParams.get('view') || 'personas';
+    const personaId = searchParams.get('persona');
+    
+    if (view !== currentView) {
+      setCurrentView(view as 'personas' | 'exercise' | 'summary' | 'design-fiction');
+    }
+    
+    if (personaId && !selectedPersona) {
+      const persona = personas.find(p => p.id === parseInt(personaId));
+      if (persona) {
+        setSelectedPersona(persona);
+      }
+    }
+  }, [searchParams, currentView, selectedPersona, setCurrentView, setSelectedPersona]);
+
+  // 상태가 변경될 때 URL 업데이트
+  const updateURL = (view: string, personaId?: number) => {
+    const params = new URLSearchParams();
+    params.set('view', view);
+    if (personaId) {
+      params.set('persona', personaId.toString());
+    }
+    router.push(`/?${params.toString()}`, { scroll: false });
+  };
+
+  // 브라우저 뒤로가기/앞으로가기 버튼 지원
+  useEffect(() => {
+    const handlePopState = () => {
+      // URL이 변경되었을 때 상태를 동기화
+      const currentParams = new URLSearchParams(window.location.search);
+      const view = currentParams.get('view') || 'personas';
+      const personaId = currentParams.get('persona');
+      
+      setCurrentView(view as 'personas' | 'exercise' | 'summary' | 'design-fiction');
+      
+      if (personaId) {
+        const persona = personas.find(p => p.id === parseInt(personaId));
+        if (persona && (!selectedPersona || selectedPersona.id !== persona.id)) {
+          setSelectedPersona(persona);
+        }
+      } else if (view === 'personas') {
+        setSelectedPersona(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [setCurrentView, setSelectedPersona, selectedPersona]);
 
   const handlePersonaSelect = (personaId: number) => {
     const persona = personas.find(p => p.id === personaId);
@@ -94,6 +151,7 @@ export default function Home() {
       
       setSelectedPersona(persona);
       setCurrentView('exercise');
+      updateURL('exercise', personaId);
     }
   };
 
@@ -111,24 +169,29 @@ export default function Home() {
     
     setSelectedPersona(null);
     setCurrentView('personas');
+    updateURL('personas');
   };
 
-  const handleExerciseComplete = (data: any) => {
+  const handleExerciseComplete = (data: ReflectionData) => {
     setReflectionData(data);
     setCurrentView('summary');
+    updateURL('summary', selectedPersona?.id);
   };
 
   const handleBackToExercise = () => {
     setCurrentView('exercise');
+    updateURL('exercise', selectedPersona?.id);
   };
 
-  const handleDesignComplete = (data: any) => {
+  const handleDesignComplete = (data: DesignData) => {
     setDesignData(data);
     setCurrentView('design-fiction');
+    updateURL('design-fiction', selectedPersona?.id);
   };
 
   const handleBackToSummary = () => {
     setCurrentView('summary');
+    updateURL('summary', selectedPersona?.id);
   };
 
   if (currentView === 'exercise' && selectedPersona) {
@@ -137,7 +200,7 @@ export default function Home() {
         persona={selectedPersona}
         onBack={handleBackToPersonas}
         onComplete={handleExerciseComplete}
-        initialData={reflectionData}
+        initialData={reflectionData || undefined}
       />
     );
   }
@@ -149,7 +212,7 @@ export default function Home() {
         reflectionData={reflectionData}
         onBack={handleBackToExercise}
         onDesignComplete={handleDesignComplete}
-        initialDesignData={designData}
+        initialDesignData={designData || undefined}
       />
     );
   }

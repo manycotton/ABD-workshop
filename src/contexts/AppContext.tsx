@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface ExclusionStory {
+export interface ExclusionStory {
   task: string;
   place: string;
   barrier: string;
@@ -10,7 +10,7 @@ interface ExclusionStory {
   consequence: string;
 }
 
-interface ReflectionData {
+export interface ReflectionData {
   strengths: string;
   importantThings: string;
   selectedContext: string;
@@ -19,13 +19,13 @@ interface ReflectionData {
   generatedStory?: string | null;
 }
 
-interface DesignData {
+export interface DesignData {
   title: string;
   image: File | null;
   description: string;
 }
 
-interface Persona {
+export interface Persona {
   id: number;
   name: string;
   role: string;

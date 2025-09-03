@@ -3,7 +3,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
-import { ArrowLeft, Send, Edit3 } from 'lucide-react';
+import { ArrowLeft, Send } from 'lucide-react';
 
 
 interface UserProfilePageProps {
@@ -102,27 +102,10 @@ export function UserProfilePage({ persona, onBack, onComplete, initialData }: Us
   const [barrier, setBarrier] = useState(initialData?.exclusionStory?.barrier || '');
   const [emotion, setEmotion] = useState(initialData?.exclusionStory?.emotion || '');
   const [consequence, setConsequence] = useState(initialData?.exclusionStory?.consequence || '');
-  const [inclusiveActions, setInclusiveActions] = useState<string[]>(initialData?.inclusiveActions || ['']);
 
   const currentLetter = personaLetters[persona.id];
   const contextOptions = ['🧭 Navigation', '📕 Education', '👥 Social Life'];
 
-  const addInclusiveAction = () => {
-    setInclusiveActions([...inclusiveActions, '']);
-  };
-
-  const updateInclusiveAction = (index: number, value: string) => {
-    const newActions = [...inclusiveActions];
-    newActions[index] = value;
-    setInclusiveActions(newActions);
-  };
-
-  const removeInclusiveAction = (index: number) => {
-    if (inclusiveActions.length > 1) {
-      const newActions = inclusiveActions.filter((_, i) => i !== index);
-      setInclusiveActions(newActions);
-    }
-  };
 
   const handleSubmit = () => {
     const reflection = {
@@ -136,7 +119,7 @@ export function UserProfilePage({ persona, onBack, onComplete, initialData }: Us
         emotion,
         consequence
       },
-      inclusiveActions: inclusiveActions.filter(action => action.trim() !== ''),
+      inclusiveActions: [],
       generatedStory: null
     };
 
